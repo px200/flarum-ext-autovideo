@@ -7,16 +7,25 @@
 */
 namespace s9e\Flarum\Autovideo;
 
-use Flarum\Formatter\Event\Configuring;
+use Flarum\Event\ConfigureFormatter;
 use Illuminate\Events\Dispatcher;
 
 function subscribe(Dispatcher $events)
 {
 	$events->listen(
-		Configuring::class,
-		function (Configuring $event)
+		ConfigureFormatter::class,
+		function (ConfigureFormatter $event)
 		{
-			$event->configurator->Autovideo;
+					if (!isset($event->configurator->tags['VIDEO']))
+			{
+				$tag = $event->configurator->tags->add('VIDEO');
+				$tag->attributes->add('src')->filterChain->append('#url');
+				$tag->template = '<video controls="" src="{@src}"/>';
+			}
+			$event->configurator->Preg->match(
+				'#\\b(?<src>https?://[-.\\w]+/[-./\\w]+\\.(?:mp4|ogg|webm))(?!\\S)#i',
+				'VIDEO'
+			);
 		}
 	);
 };
